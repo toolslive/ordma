@@ -1,0 +1,4 @@
+true:debug, annot, thread
+true: package(unix)
+true: package(lwt), package(lwt.unix) , package(lwt.preemptive)
+

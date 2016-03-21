@@ -1,0 +1,3 @@
+test/*.native
+/_build
+test/_build

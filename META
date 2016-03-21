@@ -1,0 +1,7 @@
+description = "librdmacm binding"
+version = "0.0.1"
+requires = "lwt.preemptive"
+exists_if = "libordma.cmxs,libordma.cmxa"
+archive(byte) = "libordma.cma"
+archive(native) = "libordma.cmxa"
+linkopts = "-cclib -lordma_c -cclib -lrdmacm"

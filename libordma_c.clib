@@ -1,0 +1,9 @@
+ordma_sendrecv.o
+ordma_close.o
+ordma_accept.o
+ordma_socket.o
+ordma_connect.o
+ordma_bind.o
+ordma_sockopt.o
+ordma_listen.o
+
