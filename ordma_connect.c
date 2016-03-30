@@ -18,9 +18,11 @@
 #include <caml/socketaddr.h>
 
 #include <rdma/rsocket.h>
+#include "ordma_debug.h"
 
 CAMLprim value ordma_rconnect(value socket, value address)
 {
+  ORDMA_LOG("ordma_rconnect: begin");
   int retcode;
   union sock_addr_union addr;
   socklen_param_type addr_len;
@@ -32,6 +34,7 @@ CAMLprim value ordma_rconnect(value socket, value address)
   if (retcode == -1) {
     uerror("connect", Nothing);
   }
+  ORDMA_LOG("ordma_rconnect: end");
   return Val_unit;
 }
 

@@ -27,66 +27,6 @@
 
 #include <rdma/rsocket.h>
 
-#ifndef SO_DEBUG
-#define SO_DEBUG (-1)
-#endif
-#ifndef SO_BROADCAST
-#define SO_BROADCAST (-1)
-#endif
-#ifndef SO_REUSEADDR
-#define SO_REUSEADDR (-1)
-#endif
-#ifndef SO_KEEPALIVE
-#define SO_KEEPALIVE (-1)
-#endif
-#ifndef SO_DONTROUTE
-#define SO_DONTROUTE (-1)
-#endif
-#ifndef SO_OOBINLINE
-#define SO_OOBINLINE (-1)
-#endif
-#ifndef SO_ACCEPTCONN
-#define SO_ACCEPTCONN (-1)
-#endif
-#ifndef SO_SNDBUF
-#define SO_SNDBUF (-1)
-#endif
-#ifndef SO_RCVBUF
-#define SO_RCVBUF (-1)
-#endif
-#ifndef SO_ERROR
-#define SO_ERROR (-1)
-#endif
-#ifndef SO_TYPE
-#define SO_TYPE (-1)
-#endif
-#ifndef SO_RCVLOWAT
-#define SO_RCVLOWAT (-1)
-#endif
-#ifndef SO_SNDLOWAT
-#define SO_SNDLOWAT (-1)
-#endif
-#ifndef SO_LINGER
-#define SO_LINGER (-1)
-#endif
-#ifndef SO_RCVTIMEO
-#define SO_RCVTIMEO (-1)
-#endif
-#ifndef SO_SNDTIMEO
-#define SO_SNDTIMEO (-1)
-#endif
-#ifndef TCP_NODELAY
-#define TCP_NODELAY (-1)
-#endif
-#ifndef SO_ERROR
-#define SO_ERROR (-1)
-#endif
-#ifndef IPPROTO_IPV6
-#define IPPROTO_IPV6 (-1)
-#endif
-#ifndef IPV6_V6ONLY
-#define IPV6_V6ONLY (-1)
-#endif
 
 enum option_type {
   TYPE_BOOL = 0,

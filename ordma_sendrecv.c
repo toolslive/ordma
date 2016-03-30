@@ -119,7 +119,7 @@ CAMLprim value ordma_sendto_native(value sock, value buff, value ofs, value len,
   return Val_int(ret);
 }
 
-CAMLprim value ordma_sendto(value *argv, int argc)
+CAMLprim value ordma_sendto(value *argv, int argc __attribute__((unused)))
 {
   return ordma_sendto_native (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
