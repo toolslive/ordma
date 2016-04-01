@@ -20,9 +20,12 @@
 #include <caml/socketaddr.h>
 
 #include <rdma/rsocket.h>
+#include "ordma_debug.h"
 
 CAMLprim value ordma_raccept(value sock)
 {
+  ORDMA_LOG("ordma_raccept: begin");
+  
   int retcode;
   value res;
   value a;
@@ -33,13 +36,16 @@ CAMLprim value ordma_raccept(value sock)
   enter_blocking_section();
   retcode = raccept(Int_val(sock), &addr.s_gen, &addr_len);
   leave_blocking_section();
-  if (retcode == -1) uerror("accept", Nothing);
+  if (retcode == -1) {
+    uerror("accept", Nothing);
+  }
   a = alloc_sockaddr(&addr, addr_len, retcode);
   Begin_root (a);
     res = alloc_small(2, 0);
     Field(res, 0) = Val_int(retcode);
     Field(res, 1) = a;
   End_roots();
+  ORDMA_LOG("ordma_raccept: end");
   return res;
 }
 

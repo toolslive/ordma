@@ -1,6 +1,7 @@
 type rsocket
 open Bigarray
 type ba =  (char, int8_unsigned_elt, c_layout) Array1.t
+
 val rsocket  : Unix.socket_domain ->
                Unix.socket_type ->
                int
@@ -22,3 +23,11 @@ val raccept  : rsocket -> rsocket * Unix.sockaddr
 val rsetsockopt : rsocket -> Unix.socket_bool_option -> bool -> unit
 
 
+module Version : sig
+  val major : int
+  val minor : int
+  val patch : int
+  val git_revision : string
+  val summary : int * int * int * string
+end
+  

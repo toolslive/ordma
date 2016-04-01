@@ -11,14 +11,14 @@ lib:
 clean:
 	rm -f *.o *.annot *.cm*
 	ocamlbuild -clean
-
+	cd test && ocamlbuild -clean
 
 
 
 install: lib
 
 	mkdir -p $(OCAML_LIBDIR)
-	$(OCAML_FIND) install ordma -destdir $(OCAML_LIBDIR) META \
+	$(OCAML_FIND) install ordma -destdir $(OCAML_LIBDIR) _build/META \
 	  _build/rsocket.mli \
 	  _build/rsocket.cmi \
 	  _build/lwt_rsocket.mli \
@@ -34,3 +34,5 @@ uninstall:
 
 test: 
 	cd test && ocamlbuild -use-ocamlfind lwt_test.native test.native
+
+.PHONY: test

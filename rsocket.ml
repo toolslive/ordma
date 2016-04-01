@@ -4,7 +4,9 @@ type ba =  (char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1
 external rsocket  : Unix.socket_domain ->
                     Unix.socket_type -> int -> rsocket = "ordma_rsocket"
 
-let show rsocket = string_of_int rsocket
+let show rsocket =
+  string_of_int rsocket
+                
 
 external rconnect : rsocket -> Unix.sockaddr -> unit = "ordma_rconnect"
 external rsend    : rsocket -> bytes -> int -> int -> Unix.msg_flag list
@@ -56,3 +58,6 @@ let rsetsockopt fd opt v = SO.set SO.bool fd opt v
 external rsetsockopt : rsocket -> Unix.socket_bool_option -> bool -> unit = "ordma_rsetsockopt"
 *)
                                                     
+module Version = struct
+  include Ordma_version
+end

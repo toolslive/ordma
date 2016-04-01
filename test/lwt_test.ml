@@ -7,32 +7,60 @@ module B = Lwt_rsocket.Bytes
 module X = Lwt_unix
 module B = Lwt_bytes
  *)
-             
-let client host port =
+external set32_prim : Lwt_bytes.t -> int -> int32 -> unit = "%caml_bigstring_set32"
+external get32_prim : Lwt_bytes.t -> int -> int32 = "%caml_bigstring_get32"
+
+let really_send client_fd bytes off len =
+    let rec loop count off todo =
+      if todo = 0
+      then Lwt.return count
+      else
+        B.send client_fd bytes off todo [] >>= fun sent ->
+        loop (count + 1) (off + sent) (todo - sent)
+    in
+    loop 0 off len >>= function
+    | 0 | 1 -> Lwt.return_unit
+    | n -> Lwt_io.printlf "send (%i bytes) in %i steps" len n
+
+let really_read client_fd bytes off len =
+  let rec loop count off todo =
+    if todo = 0
+    then Lwt.return count
+    else 
+      B.recv client_fd bytes off todo [] >>= fun received ->
+      loop (count +1) (off + received) (todo - received)
+  in
+  loop 0 off len >>= function
+  | 0 | 1 -> Lwt.return_unit
+  | n -> Lwt_io.printf "received (%i bytes_ in %i steps" len n
+
+
+let client host port len =
+
   Lwt_io.printlf "client (%s,%i)%!" host port >>= fun () ->
   let addr = Unix.inet_addr_of_string host in
   let fd = X.socket Unix.PF_INET Unix.SOCK_STREAM 0 in
   let sa = Unix.ADDR_INET (addr,port) in
   X.connect fd sa >>= fun () ->
-  let len = 1024 in
   let rest = len - 4 in
   let bytes_out = B.create len in
+  let () = set32_prim bytes_out 0 (rest |> Int32.of_int) in
   let bytes_in  = B.create len in
   let rec loop n =
     if n = 0
     then Lwt.return_unit
     else
-      B.send fd bytes_out 0 len [] >>= fun sent ->
-      assert (sent = len);
-      Lwt_io.printlf "(n:%i) sent %i%!" n sent >>= fun () ->
-      B.recv fd bytes_in  0 len [] >>= fun received ->
-      Lwt_io.printlf "\t received %i%!" received >>= fun () ->
-      assert (received = len);
+      really_send fd bytes_out 0 len >>= fun () ->
+      Lwt_io.printlf "(n:%i) ==>%!" n >>= fun () ->
+      really_read fd bytes_in 0 len >>= fun () ->
+      Lwt_io.printlf "\t <== %!"  >>= fun () ->
+      assert (bytes_out = bytes_in);
       loop (n-1)
   in
-  loop 1000
+  loop 40 >>= fun () ->
+  X.close fd
                                      
-let server host port =
+let server host port len =
   Lwt_io.printlf "server (%s,%i)%!" host port >>= fun () ->
   let addr = Unix.inet_addr_of_string host in
   let server_socket = X.socket Unix.PF_INET Unix.SOCK_STREAM 0 in
@@ -45,14 +73,22 @@ let server host port =
   Lwt_io.printlf "bind ok%!" >>= fun () ->
   let () = X.listen server_socket 10 in
   Lwt_io.printlf "listen ok%!" >>= fun () ->
+
   
   let protocol client_fd =
-    let len = 4096 in
-    let bytes = Bytes.create len in
+    let bytes = B.create len in
     let rec loop () =
-      X.recv client_fd bytes 0 len      [] >>= fun received ->
-      X.send client_fd bytes 0 received [] >>= fun sent ->
-      assert (received = sent);
+      Lwt_io.printlf "protocol: recv%!" >>= fun () ->
+      B.recv client_fd bytes 0 4      [] >>= fun received ->
+      Lwt_io.printlf "wanted 4, got %i" received >>= fun () ->
+      assert (received = 4);
+      let rest = get32_prim bytes 0 |> Int32.to_int in
+      Lwt_io.printlf "rest: %i" rest >>= fun () ->
+      really_read client_fd bytes 4 rest >>= fun () ->
+      let total = rest + 4 in
+      Lwt_io.printlf "protocol: received (%i)%!" (rest + 4) >>= fun () ->
+      Lwt_io.printlf "protocol: send (%i)%!" total  >>= fun () ->
+      really_send client_fd bytes 0 total >>= fun () ->
       loop ()
     in
     loop ()
@@ -82,36 +118,24 @@ let server host port =
     (fun () -> loop ())
     (fun () -> X.close server_socket)
     
-  (*
-
-  let protocol (client_fd, client_addr) =
-    try
-      let len = 4096 in
-      let bytes = Bytes.create len in
-      let rec loop () =
-        let received = Rsocket.rrecv client_fd bytes 0 len [] in
-        let sent = Rsocket.rsend     client_fd bytes 0 received [] in
-        loop ()
-      in
-      loop ()
-      with _ ->
-        (* shutdown client_sock SHUTDOWN_ALL ?? *)
-        Rsocket.rclose client_fd
-  in 
-  *)
-
-
 let () =
-  
-  if Array.length Sys.argv <> 4
+  let () =
+    let open Rsocket.Version in
+    Printf.printf "ordma_version (%i,%i,%i,%s)\n" major minor patch git_revision
+  in
+  let engine = new Lwt_rsocket.rselect in
+  Lwt_engine.set engine; 
+  let () = Printf.printf "set engine to `rselect`\n%!" in
+  if Array.length Sys.argv <> 5
   then
-    Printf.printf "%s <client|server> host port\n%!" Sys.argv.(0)
+    Printf.printf "%s <client|server> host port len \n%!" Sys.argv.(0)
   else
     let host = Sys.argv.(2) in
     let port_s = Sys.argv.(3) in
     let port = int_of_string port_s in
-    Lwt_engine.set (new Lwt_engine.select :> Lwt_engine.t);
+    let len_s = Sys.argv.(4) in
+    let len = int_of_string len_s in
     match Sys.argv.(1) with
-    | "client" -> Lwt_main.run (client host port)
-    | "server" -> Lwt_main.run (server host port)
+    | "client" -> Lwt_main.run (client host port len)
+    | "server" -> Lwt_main.run (server host port len)
                                
