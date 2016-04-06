@@ -28,14 +28,45 @@ let show lwt_rsocket =
 open Lwt.Infix
        
 let connect lwt_rsocket socketaddr =
+  (* (* from Lwt_unix.ml : *)
   let id = identifier lwt_rsocket in
   Lwt_log.debug_f "(%i) connect" id >>= fun () ->
+  let in_progress = ref false in
+  let rsocket = rsocket_of lwt_rsocket in
+  Lwt_unix.wrap_syscall
+    Lwt_unix.Write
+    lwt_rsocket
+    begin fun () ->
+    if !in_progress
+    then
+      (* If the connection is in progress, [getsockopt_error] tells
+           wether it succceed: *)
+      match Rsocket.rgetsockopt_error rsocket with
+      | None ->
+         (* The socket is connected *)
+         ()
+      | Some err ->
+         (* An error happened: *)
+         raise (Unix.Unix_error(err, "connect", ""))
+    else
+      try
+        (* We should pass only one time here, unless the system call
+             is interrupted by a signal: *)
+        Rsocket.rconnect rsocket socketaddr
+      with
+      | Unix.Unix_error (Unix.EINPROGRESS, _, _) ->
+         in_progress := true;
+         raise Lwt_unix.Retry
+    end
+   *)
+  
   let rsocket = rsocket_of lwt_rsocket in
   Lwt_preemptive.detach
     (fun () ->
       Rsocket.rconnect rsocket socketaddr)
     ()
 
+    
 let close lwt_rsocket =
   let id = identifier lwt_rsocket in
   Lwt_log.debug_f "(%i) close" id >>= fun () ->
@@ -88,7 +119,6 @@ external _ordma_lwt_unix_send :
     
 let recv (lwt_rsocket: lwt_rsocket) buffer offset len flags =
   let unix_fd = unix_fd_of lwt_rsocket in
-  let lwt_fd = Lwt_unix.of_unix_file_descr unix_fd in
   if offset < 0
      || len < 0
      || offset > Bytes.length buffer - len
@@ -97,7 +127,7 @@ let recv (lwt_rsocket: lwt_rsocket) buffer offset len flags =
   else
     Lwt_unix.wrap_syscall
       Lwt_unix.Read
-      lwt_fd
+      lwt_rsocket
       (fun () -> _ordma_lwt_unix_recv unix_fd buffer offset len flags)
     >>= fun r ->
     (* TODO: This is a symptom of something else? *)
@@ -107,6 +137,22 @@ let recv (lwt_rsocket: lwt_rsocket) buffer offset len flags =
 
   
 let accept lwt_rsocket =
+  (* 
+     (* from Lwt_unix.ml :  *)
+     let accept ch =
+     wrap_syscall Read ch (fun _ -> let (fd, addr) = 
+     Unix.accept ch.fd in (mk_ch ~blocking:false fd, addr)) 
+   *)
+  (*
+  Lwt_unix.wrap_syscall
+    Lwt_unix.Read
+    lwt_rsocket
+    (fun () -> 
+       let (fd, addr) = Rsocket.raccept (rsocket_of lwt_rsocket) in
+       let (ufd:Unix.file_descr) = Obj.magic fd in
+       (Lwt_unix.of_unix_file_descr ~blocking:false ufd, addr))
+   *)
+  
   Lwt_preemptive.detach
     (fun () ->
       let rsocket = rsocket_of lwt_rsocket in
@@ -115,7 +161,8 @@ let accept lwt_rsocket =
       client_rs,client_addr
     )
     ()
-
+   
+    
 open Bigarray
 
 type ba = (char, int8_unsigned_elt, c_layout) Array1.t
