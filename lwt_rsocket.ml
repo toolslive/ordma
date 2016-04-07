@@ -61,7 +61,7 @@ let connect lwt_rsocket socketaddr =
    *)
   
   let rsocket = rsocket_of lwt_rsocket in
-  Lwt_preemptive.detach
+    Lwt_preemptive.detach
     (fun () ->
       Rsocket.rconnect rsocket socketaddr)
     ()
@@ -69,18 +69,19 @@ let connect lwt_rsocket socketaddr =
     
 let close lwt_rsocket =
   let id = identifier lwt_rsocket in
-  Lwt_log.debug_f "(%i) close" id >>= fun () ->
   Lwt.finalize
     (fun () ->
       Lwt_unix.close lwt_rsocket)
     (fun () ->
-      Lwt.catch
-        (fun () ->
-          let rsocket = rsocket_of lwt_rsocket in
-          Lwt_preemptive.detach Rsocket.rclose rsocket
-        )
-        (fun exn -> Lwt_log.debug_f ~exn "(ignoring) on close (%i)" id)
+      let () =try 
+        let rsocket = rsocket_of lwt_rsocket in
+        Rsocket.rclose rsocket
+      with
+        exn  -> Lwt_log.ign_debug_f ~exn "(ignoring) on close (%i)" id
+      in
+      Lwt.return_unit
     )
+
   
 
 let bind lwt_rsocket socketaddr =
@@ -152,7 +153,6 @@ let accept lwt_rsocket =
        let (ufd:Unix.file_descr) = Obj.magic fd in
        (Lwt_unix.of_unix_file_descr ~blocking:false ufd, addr))
    *)
-  
   Lwt_preemptive.detach
     (fun () ->
       let rsocket = rsocket_of lwt_rsocket in
@@ -161,6 +161,7 @@ let accept lwt_rsocket =
       client_rs,client_addr
     )
     ()
+  
    
     
 open Bigarray
@@ -190,8 +191,7 @@ module Bytes = struct
     then
     invalid_arg "send"
     else
-      let id = identifier lwt_rsocket in
-      Lwt_log.debug_f "(%i) Lwt_rsocket.Bytes.send (%i bytes)" id len >>= fun () ->
+      (*let id = identifier lwt_rsocket in*)
       let unix_fd = unix_fd_of lwt_rsocket in
       Lwt_unix.wrap_syscall
         Lwt_unix.Write
@@ -199,8 +199,7 @@ module Bytes = struct
         (fun () -> _ordma_lwt_unix_bytes_send unix_fd t pos len flags)
 
   let recv lwt_rsocket buffer offset len flags =
-    let id = identifier lwt_rsocket in
-    Lwt_log.debug_f "(%i) Lwt_rsocket.Bytes.recv on rsocket" id >>= fun () ->
+    (*let id = identifier lwt_rsocket in*)
     if offset < 0
        || len < 0
        || offset > Array1.dim buffer - len
@@ -244,20 +243,21 @@ class rselect = object
         Unix.file_descr list ->
         float -> Unix.file_descr list * Unix.file_descr list
     = fun fds_r fds_w timeout ->
-    let fds2s fds =
+    (*let fds2s fds =
       let i_of fd : int = Obj.magic fd in
       let s_of fd = i_of fd |> string_of_int in
       String.concat ";" (List.map s_of fds)
-    in
-    let () = Lwt_log.ign_debug_f
+    in*)
+    (*let () = Printf.eprintf
                "rselect.select: ([%s],[%s],%f) begin\n%!"
                (fds2s fds_r) (fds2s fds_w) timeout
-    in
+    in*)
     let r = _rselect_select fds_r fds_w [] timeout in
+    (*
     let rr,rw = r in
-    let () = Lwt_log.ign_debug_f
+    let () = Printf.eprintf
                "rselect.select => ([%s],[%s]) end\n%!"
                (fds2s rr) (fds2s rw)
-    in
+    in*)
     r
 end
