@@ -1,3 +1,5 @@
+
+                     
 type lwt_rsocket = Lwt_unix.file_descr
 
 let unix_fd_of lwt_rsocket = Lwt_unix.unix_file_descr lwt_rsocket
@@ -60,16 +62,63 @@ let connect lwt_rsocket socketaddr =
          raise Lwt_unix.Retry
     end
 
-  (*
-  let rsocket = rsocket_of lwt_rsocket in
-    Lwt_preemptive.detach
-    (fun () ->
-      Rsocket.rconnect rsocket socketaddr)
-    ()
-   *)
+type state = Lwt_unix.state = Opened | Closed | Aborted of exn 
 
-    
+
+(* this is a copy of Lwt_unix.file_descr *)
+type rfile_descr = (* Lwt_unix.file_descr = *) {
+  fd : Unix.file_descr;
+
+  mutable state: state;
+  mutable set_flags : bool;
+  mutable blocking : bool Lwt.t Lazy.t;
+  mutable event_readable : Lwt_engine.event option;
+  mutable event_writable : Lwt_engine.event option;
+  hooks_readable : (unit -> unit) Lwt_sequence.t;
+  hooks_writable : (unit -> unit) Lwt_sequence.t;
+  }
+                                                 
+let set_state rch state =
+    rch.state <- Closed
+
+let rec check_descriptor rch =
+  match rch.state with
+    | Opened ->
+        ()
+    | Aborted e ->
+        raise e
+    | Closed ->
+       raise (Unix.Unix_error (Unix.EBADF, "check_descriptor", ""))
+
+let clear_events rch =
+  Lwt_sequence.iter_node_l (fun node -> Lwt_sequence.remove node; Lwt_sequence.get node ()) rch.hooks_readable;
+  Lwt_sequence.iter_node_l (fun node -> Lwt_sequence.remove node; Lwt_sequence.get node ()) rch.hooks_writable;
+  begin
+    match rch.event_readable with
+      | Some ev ->
+         rch.event_readable <- None;
+         Lwt_engine.stop_event ev
+      | None ->
+          ()
+  end;
+  begin
+    match rch.event_writable with
+      | Some ev ->
+         rch.event_writable <- None;
+         Lwt_engine.stop_event ev
+      | None ->
+         ()
+  end
+ 
 let close lwt_rsocket =
+  let (rch : rfile_descr) = Obj.magic lwt_rsocket in
+  if rch.state = Closed then check_descriptor rch;
+  set_state rch Closed;
+  clear_events rch;
+  (* TODO: via job *)
+  Lwt.return (Rsocket.rclose (rsocket_of lwt_rsocket))
+
+(* the original hack:
   let id = identifier lwt_rsocket in
   Lwt.finalize
     (fun () ->
@@ -83,7 +132,7 @@ let close lwt_rsocket =
       in
       Lwt.return_unit
     )
-
+   *)
   
 
 let bind lwt_rsocket socketaddr =
