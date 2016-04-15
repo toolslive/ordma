@@ -14,11 +14,12 @@ let identifier lwt_rsocket =
     
 let wrap rsocket =
   let (unix_fd : Unix.file_descr) = Obj.magic rsocket in
-  let lwt_fd = Lwt_unix.of_unix_file_descr unix_fd in
+  let lwt_fd = Lwt_unix.of_unix_file_descr unix_fd ~blocking:false in
   (lwt_fd : lwt_rsocket)
     
 let socket domain typ proto =
   let rsocket = Rsocket.rsocket domain typ proto in
+  let () = Rsocket.set_nonblock rsocket in
   wrap rsocket
   
 let show lwt_rsocket =
@@ -28,7 +29,7 @@ let show lwt_rsocket =
 open Lwt.Infix
        
 let connect lwt_rsocket socketaddr =
-  (* (* from Lwt_unix.ml : *)
+  (* from Lwt_unix.ml : *)
   let id = identifier lwt_rsocket in
   Lwt_log.debug_f "(%i) connect" id >>= fun () ->
   let in_progress = ref false in
@@ -58,13 +59,14 @@ let connect lwt_rsocket socketaddr =
          in_progress := true;
          raise Lwt_unix.Retry
     end
-   *)
-  
+
+  (*
   let rsocket = rsocket_of lwt_rsocket in
     Lwt_preemptive.detach
     (fun () ->
       Rsocket.rconnect rsocket socketaddr)
     ()
+   *)
 
     
 let close lwt_rsocket =
@@ -153,6 +155,13 @@ let accept lwt_rsocket =
        let (ufd:Unix.file_descr) = Obj.magic fd in
        (Lwt_unix.of_unix_file_descr ~blocking:false ufd, addr))
    *)
+  Lwt_unix.wait_read lwt_rsocket >>= fun () ->
+  let rsocket = rsocket_of lwt_rsocket in
+  let client_s,client_addr = Rsocket.raccept rsocket in
+  let client_rs = wrap client_s in
+  let r =  client_rs,client_addr in
+  Lwt.return r
+  (*
   Lwt_preemptive.detach
     (fun () ->
       let rsocket = rsocket_of lwt_rsocket in
@@ -161,7 +170,7 @@ let accept lwt_rsocket =
       client_rs,client_addr
     )
     ()
-  
+   *)
    
     
 open Bigarray

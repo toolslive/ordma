@@ -55,9 +55,7 @@ let rgetsockopt fd opt = SO.get SO.bool fd opt
 let rsetsockopt fd opt v = SO.set SO.bool fd opt v
 let rgetsockopt_error fd = SO.get SO.error fd SO_ERROR
 
-(*
-external rsetsockopt : rsocket -> Unix.socket_bool_option -> bool -> unit = "ordma_rsetsockopt"
-*)
+external set_nonblock : rsocket -> unit = "ordma_set_nonblock"                                  
                                                     
 module Version = struct
   include Ordma_version

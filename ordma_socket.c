@@ -18,6 +18,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <rdma/rsocket.h>
+#include <fcntl.h>
 
 int ordma_socket_domain_table[] = {
   PF_UNIX, PF_INET,
@@ -39,3 +40,13 @@ CAMLprim value ordma_rsocket(value domain, value type, value proto)
 
 }
 
+CAMLprim value ordma_set_nonblock(value fd)
+{
+  int retcode;
+  retcode = rfcntl(Int_val(fd), F_GETFL, 0);
+  if (retcode == -1 ||
+      rfcntl(Int_val(fd), F_SETFL, retcode | O_NONBLOCK) == -1){
+    uerror("set_nonblock", Nothing);
+  }
+  return Val_unit;
+}
