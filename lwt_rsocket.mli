@@ -1,6 +1,6 @@
 type lwt_rsocket
-val socket     : Unix.socket_domain -> Unix.socket_type -> int -> lwt_rsocket
-                                                                 
+val socket      : Unix.socket_domain -> Unix.socket_type -> int -> lwt_rsocket
+                                                                     
 (* val show    : rsocket -> string *)
 val identifier : lwt_rsocket -> int
 val connect    : lwt_rsocket -> Unix.sockaddr -> unit Lwt.t

@@ -5,7 +5,7 @@ open Cmdliner
 module X = Lwt_rsocket 
 module B = Lwt_rsocket.Bytes
 
-(*
+(* (* You can run the same code with tcip sockets too *)
 module X = struct
   include Lwt_unix
   let identifier fd =
@@ -193,7 +193,7 @@ let accept_bug host port =
     assert (read = response_length);
      *)
     X.close fd0 >>= fun () ->
-    (* X.close fd1 >>= fun () -> *)
+    X.close fd1 >>= fun () ->
     Lwt.return_unit
   in
   Lwt_main.run t
