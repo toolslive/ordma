@@ -21,8 +21,9 @@ val rbind    : rsocket -> Unix.sockaddr -> unit
 val rlisten  : rsocket -> int -> unit
 val raccept  : rsocket -> rsocket * Unix.sockaddr
 val rsetsockopt : rsocket -> Unix.socket_bool_option -> bool -> unit
-
-
+val rgetsockopt_error : rsocket -> Unix.error option
+val set_nonblock : rsocket -> unit
+                                
 module Version : sig
   val major : int
   val minor : int

@@ -16,13 +16,20 @@
 #include <caml/unixsupport.h>
 
 #include <rdma/rsocket.h>
+#include "ordma_debug.h"
 
 CAMLprim value ordma_rclose(value fd)
 {
+  
   int ret;
+  int fd_ = Int_val(fd);
+  ORDMA_LOG("ordma_rclose(%i)", fd_);
   caml_enter_blocking_section();
-  ret = rclose(Int_val(fd));
+  ret = rclose(fd_);
   caml_leave_blocking_section();
-  if (ret == -1) uerror("close", Nothing);
+  ORDMA_LOG("ordma_rclose(%i),ret=%i",fd_,ret);
+  if (ret == -1) {
+      uerror("close", Nothing);
+  }
   return Val_unit;
 }

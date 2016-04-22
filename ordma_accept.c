@@ -21,7 +21,7 @@
 
 #include <rdma/rsocket.h>
 #include "ordma_debug.h"
-
+//#include <errno.h>
 CAMLprim value ordma_raccept(value sock)
 {
   ORDMA_LOG("ordma_raccept: begin");
@@ -33,11 +33,14 @@ CAMLprim value ordma_raccept(value sock)
   socklen_param_type addr_len;
 
   addr_len = sizeof(addr);
+  int sock_ = Int_val(sock);
+  ORDMA_LOG("ordma_raccept: sock_=%i addr_len=%i", sock_, addr_len);
   enter_blocking_section();
-  retcode = raccept(Int_val(sock), &addr.s_gen, &addr_len);
+  //errno = 0;
+  retcode = raccept(sock_, &addr.s_gen, &addr_len);
   leave_blocking_section();
   if (retcode == -1) {
-    uerror("accept", Nothing);
+    uerror("raccept", Nothing);
   }
   a = alloc_sockaddr(&addr, addr_len, retcode);
   Begin_root (a);
