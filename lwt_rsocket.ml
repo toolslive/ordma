@@ -64,7 +64,7 @@ type rfile_descr = (* Lwt_unix.file_descr = *) {
 
                                                  
 let set_state rch state =
-    rch.state <- Closed
+    rch.state <- state
 
 let _rch2ch (rch: rfile_descr) =
   let (ch : Lwt_unix.file_descr) = Obj.magic rch in
