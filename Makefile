@@ -21,8 +21,10 @@ install: lib
 	$(OCAML_FIND) install ordma -destdir $(OCAML_LIBDIR) _build/META \
 	  _build/rsocket.mli \
 	  _build/rsocket.cmi \
+	  _build/rsocket.cmx \
 	  _build/lwt_rsocket.mli \
 	  _build/lwt_rsocket.cmi \
+	  _build/lwt_rsocket.cmx \
 	  _build/libordma_c.a \
 	  _build/libordma.a \
 	  _build/libordma.cmxa \
@@ -32,7 +34,7 @@ uninstall:
 	$(OCAML_FIND) remove ordma -destdir $(OCAML_LIBDIR)
 
 
-test: 
+test:
 	cd test && ocamlbuild -use-ocamlfind lwt_test.native test.native
 
 .PHONY: test
