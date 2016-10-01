@@ -20,5 +20,5 @@ depends: [
 available: [os = "linux" & ocaml-version >= "4.02.0"]
 
 depexts:[
-  [[ "ubuntu"] ["librdmacm-dev"] ]
+  [[ "ubuntu"] ["librdmacm-dev" "libibverbs-dev"] ]
 ]
