@@ -27,6 +27,7 @@ install: lib
 	  _build/lwt_rsocket.cmx \
 	  _build/libordma_c.a \
 	  _build/libordma.a \
+	  _build/libordma.cma \
 	  _build/libordma.cmxa \
 	  _build/libordma.cmxs
 
