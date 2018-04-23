@@ -15,9 +15,9 @@ install: [make "install"]
 remove: [make "uninstall"]
 depends: [
   "ocamlfind" {build}
-  "lwt" { >= "2.5.1" }
+  "lwt" { >= "3.2.0" }
 ]
-available: [os = "linux" & ocaml-version >= "4.02.0"]
+available: [os = "linux" & ocaml-version >= "4.02.0" ]
 
 depexts:[
   [[ "ubuntu"] ["librdmacm-dev" "libibverbs-dev"] ]
