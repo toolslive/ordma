@@ -43,7 +43,7 @@ let make_version_and_meta _ _ =
       "exists_if = \"libordma.cmxs,libordma.cmxa\"\n";
       "archive(byte) = \"libordma.cma\"\n";
       "archive(native) = \"libordma.cmxa\"\n";
-      "linkopts = \"-cclib -lordma_c -cclib -lrdmacm\""
+      "linkopts = \"-cclib -lordma_c -cclib -lrdmacm\"\n"
     ]
   in
   let write_meta = Echo (meta_lines, "META") in

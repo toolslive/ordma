@@ -29,7 +29,8 @@ install: lib
 	  _build/libordma.a \
 	  _build/libordma.cma \
 	  _build/libordma.cmxa \
-	  _build/libordma.cmxs
+	  _build/libordma.cmxs \
+	  _build/dllordma_c.so
 
 uninstall:
 	$(OCAML_FIND) remove ordma -destdir $(OCAML_LIBDIR)
