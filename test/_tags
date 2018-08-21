@@ -1,3 +1,0 @@
-true:debug, annot, thread
-true:package(ordma)
-true:package(cmdliner)
