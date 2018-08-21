@@ -18,4 +18,5 @@
                echo let summary = major, minor, patch, git_revision")
     )
   )
+  (mode fallback)
 )
