@@ -1,7 +1,7 @@
 (executables
   (names test lwt_test)
   (libraries ordma cmdliner)
-  (flags -w -27)
+  (flags -w -27 -unsafe-string)
 )
 
 (alias
