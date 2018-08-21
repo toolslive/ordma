@@ -7,14 +7,17 @@ homepage: "https://github.com/toolslive/ordma"
 bug-reports: "https://github.com/toolslive/ordma/issues"
 license: "TBD"
 dev-repo: "git+https//github.com/toolslive/ordma.git"
-build: [make lib]
-install: [make "install"]
-remove: [make "uninstall"]
+build: [
+  ["dune" "subst"] {pinned}
+  ["dune" "build" "-p" name "-j" jobs]
+]
+build-test: [["dune" "runtest" "-p" name "-j" jobs]]
 depends: [
-  "ocamlfind" {build}
-  "ocamlbuild" {build}
+  "dune" {build}
   "lwt" {>= "2.5.1"}
   "lwt_log"
+  "lwt_test" {test}
+  "cmdliner" {test}
 ]
 depexts: [
   [["ubuntu"] ["libibverbs-dev" "librdmacm-dev"]]
