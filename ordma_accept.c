@@ -35,16 +35,16 @@ CAMLprim value ordma_raccept(value sock)
   addr_len = sizeof(addr);
   int sock_ = Int_val(sock);
   ORDMA_LOG("ordma_raccept: sock_=%i addr_len=%i", sock_, addr_len);
-  enter_blocking_section();
+  caml_enter_blocking_section();
   //errno = 0;
   retcode = raccept(sock_, &addr.s_gen, &addr_len);
-  leave_blocking_section();
+  caml_leave_blocking_section();
   if (retcode == -1) {
     uerror("raccept", Nothing);
   }
   a = alloc_sockaddr(&addr, addr_len, retcode);
   Begin_root (a);
-    res = alloc_small(2, 0);
+    res = caml_alloc_small(2, 0);
     Field(res, 0) = Val_int(retcode);
     Field(res, 1) = a;
   End_roots();

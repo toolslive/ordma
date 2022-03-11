@@ -28,9 +28,9 @@ CAMLprim value ordma_rconnect(value socket, value address)
   socklen_param_type addr_len;
 
   get_sockaddr(address, &addr, &addr_len);
-  enter_blocking_section();
+  caml_enter_blocking_section();
   retcode = rconnect(Int_val(socket), &addr.s_gen, addr_len);
-  leave_blocking_section();
+  caml_leave_blocking_section();
   if (retcode == -1) {
     uerror("connect", Nothing);
   }
